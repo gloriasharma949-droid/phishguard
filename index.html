@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard — Phishing Awareness & Link Analyzer</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #1e293b;
+      --surface-hover: #334155;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --safe: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Navigation */
+    header {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--text);
+    }
+
+    /* Hero */
+    .hero {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 2.5rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 2.6rem;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    /* Sections */
+    section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-desc {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* URL Scanner */
+    .scanner-box {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 240px;
+      padding: 0.9rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+
+    button {
+      background: var(--primary);
+      color: #0f172a;
+      border: none;
+      padding: 0.9rem 1.6rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: #7dd3fc;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .sample-links {
+      margin-top: 0.9rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .sample-links span {
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: underline;
+      margin-right: 0.75rem;
+    }
+
+    .result-box {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: 10px;
+      display: none;
+      border-left: 5px solid;
+    }
+
+    .result-safe {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: var(--safe);
+    }
+
+    .result-warn {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--warn);
+    }
+
+    .result-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: var(--danger);
+    }
+
+    .result-box ul {
+      margin-top: 0.6rem;
+      padding-left: 1.3rem;
+      color: var(--text);
+    }
+
+    /* Quiz Section */
+    .quiz-scenario {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .email-meta {
+      font-size: 0.9rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.6rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .quiz-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-phish {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-phish:hover {
+      background: #dc2626;
+    }
+
+    .btn-legit {
+      background: var(--safe);
+      color: #052e16;
+    }
+
+    .btn-legit:hover {
+      background: #16a34a;
+      color: white;
+    }
+
+    .btn-next {
+      background: var(--surface-hover);
+      color: var(--text);
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .quiz-feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: none;
+      font-weight: 500;
+    }
+
+    /* Tips Grid */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .tip-item {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.3rem;
+    }
+
+    .tip-item h3 {
+      color: var(--primary);
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .tip-item p {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <div class="logo">🛡️ PhishGuard</div>
+      <nav>
+        <a href="#scanner">URL Scanner</a>
+        <a href="#quiz">Phishing Quiz</a>
+        <a href="#tips">Red Flags</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <span class="badge">Cybersecurity Awareness Tool</span>
+    <h1>Stop Phishing Before You Click.</h1>
+    <p>Inspect suspicious links in real time and test your instincts against real-world social engineering tricks.</p>
+  </div>
+
+  <!-- Interactive URL Analyzer -->
+  <section id="scanner">
+    <div class="card">
+      <h2>🔍 Suspicious Link Analyzer</h2>
+      <p class="section-desc">Paste any URL below to check for common phishing patterns and deceptive tricks.</p>
+      
+      <div class="scanner-box">
+        <input type="text" id="urlInput" placeholder="e.g., http://paypal-security-update.com/login" />
+        <button onclick="analyzeURL()">Scan Link</button>
+      </div>
+
+      <div class="sample-links">
+        Try examples:
+        <span onclick="fillSample('http://192.168.1.45/bank-verify/login')">IP Address Link</span>
+        <span onclick="fillSample('https://www.microsoft.com@evil-login.net')">@ Redirect Trick</span>
+        <span onclick="fillSample('https://www.wikipedia.org')">Safe Link</span>
+      </div>
+
+      <div id="scanResult" class="result-box"></div>
+    </div>
+  </section>
+
+  <!-- Interactive Phishing Quiz -->
+  <section id="quiz">
+    <div class="card">
+      <h2>🎯 Spot the Phish: Interactive Challenge</h2>
+      <p class="section-desc" id="quizProgress">Question 1 of 3 — Can you tell if this message is safe or a scam?</p>
+
+      <div class="quiz-scenario">
+        <div class="email-meta" id="emailMeta"></div>
+        <p id="emailBody"></p>
+      </div>
+
+      <div class="quiz-buttons" id="quizButtons">
+        <button class="btn-phish" onclick="checkAnswer(true)">🚨 Phishing Scam</button>
+        <button class="btn-legit" onclick="checkAnswer(false)">✅ Legitimate</button>
+      </div>
+
+      <div id="quizFeedback" class="quiz-feedback"></div>
+      <button id="nextBtn" class="btn-next" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </section>
+
+  <!-- Red Flags Checklist -->
+  <section id="tips">
+    <h2>🚩 4 Golden Rules to Spot Phishing</h2>
+    <p class="section-desc">Always pause and verify before entering passwords or downloading attachments.</p>
+    <div class="tips-grid">
+      <div class="tip-item">
+        <h3>1. Artificial Urgency</h3>
+        <p>"Your account will be suspended in 2 hours!" Attackers create panic so you act without thinking.</p>
+      </div>
+      <div class="tip-item">
+        <h3>2. Lookalike Domains</h3>
+        <p>Check spelling carefully: <code>amaz0n-support.com</code> or <code>paypaI.com</code> (using a capital I) are fake.</p>
+      </div>
+      <div class="tip-item">
+        <h3>3. Generic Greetings</h3>
+        <p>Messages addressed to "Dear Valued Customer" instead of your real name are often mass phishing blasts.</p>
+      </div>
+      <div class="tip-item">
+        <h3>4. Unexpected Attachments</h3>
+        <p>Never open unexpected <code>.zip</code>, <code>.exe</code>, or macro-enabled invoices from unknown senders.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Built with ❤️ for Cybersecurity Awareness • PhishGuard Project
+  </footer>
+
+  <script>
+    // --- URL SCANNER LOGIC ---
+    function fillSample(sampleUrl) {
+      document.getElementById('urlInput').value = sampleUrl;
+      analyzeURL();
+    }
+
+    function analyzeURL() {
+      const rawInput = document.getElementById('urlInput').value.trim();
+      const resultBox = document.getElementById('scanResult');
+
+      if (!rawInput) {
+        alert('Please enter a URL to scan.');
+        return;
+      }
+
+      let urlToParse = rawInput;
+      if (!/^https?:\/\//i.test(urlToParse)) {
+        urlToParse = 'http://' + urlToParse;
+      }
+
+      let parsed;
+      try {
+        parsed = new URL(urlToParse);
+      } catch (e) {
+        resultBox.style.display = 'block';
+        resultBox.className = 'result-box result-danger';
+        resultBox.innerHTML = '<strong>⚠️ Invalid URL Format:</strong> This does not look like a standard web address.';
+        return;
+      }
+
+      const flags = [];
+      let riskScore = 0;
+
+      // Check 1: Unencrypted HTTP
+      if (parsed.protocol === 'http:') {
+        flags.push('Uses unencrypted <strong>HTTP</strong> instead of secure HTTPS.');
+        riskScore += 1;
+      }
+
+      // Check 2: IP Address instead of domain name
+      if (/^(\d{1,3}\.){3}\d{1,3}$/.test(parsed.hostname)) {
+        flags.push('Uses a raw <strong>IP address</strong> instead of a registered company domain.');
+        riskScore += 3;
+      }
+
+      // Check 3: @ symbol trick
+      if (rawInput.includes('@')) {
+        flags.push('Contains an <strong>"@" symbol</strong> — browsers ignore everything before @ and redirect to the real destination after it.');
+        riskScore += 3;
+      }
+
+      // Check 4: Suspicious keywords in domain
+      const suspiciousWords = ['login', 'verify', 'update', 'secure', 'banking', 'account', 'free', 'prize', 'wallet'];
+      const foundWords = suspiciousWords.filter(word => parsed.hostname.toLowerCase().includes(word));
+      if (foundWords.length > 0) {
+        flags.push(`Domain contains high-risk keywords often used in scams: <strong>${foundWords.join(', ')}</strong>.`);
+        riskScore += 2;
+      }
+
+      // Check 5: Excessive subdomains or hyphens
+      if ((parsed.hostname.match(/\./g) || []).length >= 3 || (parsed.hostname.match(/-/g) || []).length >= 2) {
+        flags.push('Domain uses multiple subdomains or hyphens, which is common in spoofed websites.');
+        riskScore += 1;
+      }
+
+      resultBox.style.display = 'block';
+      if (riskScore >= 3) {
+        resultBox.className = 'result-box result-danger';
+        resultBox.innerHTML = `<strong>🚨 High Phishing Risk Detected!</strong><ul>${flags.map(f => `<li>${f}</li>`).join('')}</ul>`;
+      } else if (riskScore > 0) {
+        resultBox.className = 'result-box result-warn';
+        resultBox.innerHTML = `<strong>⚠️ Proceed with Caution:</strong> Some suspicious traits were found:<ul>${flags.map(f => `<li>${f}</li>`).join('')}</ul>`;
+      } else {
+        resultBox.className = 'result-box result-safe';
+        resultBox.innerHTML = `<strong>✅ No Obvious Structural Red Flags:</strong> Uses HTTPS and a clean domain structure. Still verify the sender before entering passwords!`;
+      }
+    }
+
+    // --- QUIZ LOGIC ---
+    const questions = [
+      {
+        meta: "From: security@netfIix-billing-alert.com | Subject: URGENT: Payment Declined!",
+        body: "Dear Customer, Your last payment failed. Click http://netfIix-billing-alert.com/update within 12 hours or your account will be permanently deleted.",
+        isPhish: true,
+        explanation: "Correct! Notice the capital 'I' instead of 'l' in 'netfIix', the fake urgency ('12 hours'), and the unencrypted HTTP link."
+      },
+      {
+        meta: "From: no-reply@github.com | Subject: [GitHub] A new public key was added to your account",
+        body: "Hi there, A new SSH key was recently added to your GitHub account. If this was you, you can safely ignore this email. If not, visit https://github.com/settings/keys to review.",
+        isPhish: false,
+        explanation: "Spot on! The sender domain is genuinely github.com, there is no panic-inducing threat, and it directs you to the official HTTPS settings page."
+      },
+      {
+        meta: "From: HR-Admin@company-portal-docs.xyz | Subject: Mandatory 2026 Bonus Revision",
+        body: "Please download the attached 'Salary_Bonus_2026.zip' file and enable macros in Word to view your updated compensation package.",
+        isPhish: true,
+        explanation: "Exactly! Unsolicited .zip attachments asking you to 'enable macros' are a classic malware/phishing delivery method."
+      }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function loadQuestion() {
+      const q = questions[currentQ];
+      document.getElementById('quizProgress').innerText = `Question ${currentQ + 1} of ${questions.length} — Can you tell if this message is safe or a scam?`;
+      document.getElementById('emailMeta').innerText = q.meta;
+      document.getElementById('emailBody').innerText = q.body;
+      document.getElementById('quizFeedback').style.display = 'none';
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('quizButtons').style.display = 'flex';
+    }
+
+    function checkAnswer(userGuessedPhish) {
+      const q = questions[currentQ];
+      const feedback = document.getElementById('quizFeedback');
+      document.getElementById('quizButtons').style.display = 'none';
+      feedback.style.display = 'block';
+
+      if (userGuessedPhish === q.isPhish) {
+        score++;
+        feedback.style.background = 'rgba(34, 197, 94, 0.15)';
+        feedback.style.color = '#86efac';
+        feedback.innerText = '✅ ' + q.explanation;
+      } else {
+        feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+        feedback.style.color = '#fca5a5';
+        feedback.innerText = '❌ Not quite! ' + q.explanation;
+      }
+
+      const nextBtn = document.getElementById('nextBtn');
+      nextBtn.style.display = 'inline-block';
+      nextBtn.innerText = currentQ < questions.length - 1 ? 'Next Question →' : 'See Final Score';
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ < questions.length) {
+        loadQuestion();
+      } else {
+        document.getElementById('quizProgress').innerText = 'Challenge Complete!';
+        document.getElementById('emailMeta').innerText = `Final Score: ${score} out of ${questions.length}`;
+        document.getElementById('emailBody').innerText = score === questions.length
+          ? '🎉 Perfect score! You have sharp eyes for spotting phishing attempts.'
+          : '👍 Good effort! Review the 4 Golden Rules below and try again anytime.';
+        document.getElementById('quizFeedback').style.display = 'none';
+        const nextBtn = document.getElementById
